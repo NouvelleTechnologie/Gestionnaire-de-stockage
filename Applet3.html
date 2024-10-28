@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réception des Données</title>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .data-display {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .param-row {
+            margin: 10px 0;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Données Reçues</h1>
+        <div class="data-display" id="dataContainer">
+            <p>En attente des données...</p>
+        </div>
+    </div>
+    <div class="nav-buttons">
+            <button onclick="window.location.href='Applet2.html'">Retour à la saisie</button>
+    </div>
+    <script>
+        // Fonction pour récupérer les paramètres de l'URL
+        function getUrlParameters() {
+            const params = new URLSearchParams(window.location.search);
+            const container = document.getElementById('dataContainer');
+            container.innerHTML = ''; // Efface le contenu initial
+
+            if (params.toString()) {
+                // Parcourt tous les paramètres reçus
+                params.forEach((value, key) => {
+                    const paramRow = document.createElement('div');
+                    paramRow.className = 'param-row';
+                    paramRow.innerHTML = `<strong>${key}:</strong> ${value}`;
+                    container.appendChild(paramRow);
+                });
+            } else {
+                container.innerHTML = '<p>Aucune donnée reçue</p>';
+            }
+        }
+
+        // Exécute la fonction au chargement de la page
+        window.onload = getUrlParameters;
+    </script>
+    <!DOCTYPE html>
+<html lang="fr">
+<!-- [Le reste du code HTML et CSS reste identique jusqu'à la partie script] -->
+
+<script>
+    // Fonctions existantes inchangées...
+    
+    function sendInventory() {
+        const inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        
+        // Préparation des données pour l'envoi
+        let queryParams = [];
+        
+        inventory.forEach((item, index) => {
+            if (!item.sent) {
+                // Ajout des paramètres pour chaque article
+                queryParams.push(`article${index}=${encodeURIComponent(item.name)}`);
+                queryParams.push(`quantite${index}=${encodeURIComponent(item.quantity)}`);
+                queryParams.push(`date${index}=${encodeURIComponent(item.date || new Date().toLocaleDateString())}`);
+                
+                // Marquer comme envoyé
+                item.sent = true;
+                item.sentDate = new Date().toISOString();
+            }
+        });
+        
+        // Ajouter le nombre total d'articles
+        queryParams.push(`totalArticles=${inventory.length}`);
+        
+        // Calculer la quantité totale
+        const totalQuantity = inventory.reduce((sum, item) => sum + parseInt(item.quantity), 0);
+        queryParams.push(`quantiteTotale=${totalQuantity}`);
+        
+        // Mise à jour du localStorage
+        localStorage.setItem('inventory', JSON.stringify(inventory));
+        
+        // Construction de l'URL avec tous les paramètres
+        const receivingPage = 'reception.html?' + queryParams.join('&');
+        
+        // Ouvrir la page de réception dans un nouvel onglet
+        window.open(receivingPage, '_blank');
+        
+        // Actualiser l'affichage actuel
+        loadInventoryData();
+    }
+
+    // Le reste des fonctions reste identique...
+
+    // Chargement initial des données
+    window.onload = loadInventoryData;
+</script>
+</body>
+</html>
